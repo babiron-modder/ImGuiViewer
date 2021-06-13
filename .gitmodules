@@ -1,0 +1,15 @@
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "gl3w"]
+	path = gl3w
+	url = https://github.com/skaslev/gl3w.git
+[submodule "glm"]
+	path = glm
+	url = https://github.com/g-truc/glm.git
+[submodule "glfw"]
+	path = glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "lua"]
+	path = lua
+	url = https://github.com/lua/lua.git
