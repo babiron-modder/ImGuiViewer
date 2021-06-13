@@ -4,6 +4,6 @@ libobj
 libsrc
 obj
 imgui.ini
-*.dll
+lua*.dll
 *.exe
 !lua/*
