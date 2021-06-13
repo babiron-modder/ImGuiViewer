@@ -18,3 +18,7 @@ cd ../
 ```
 - Makefileを準備(コピペ)
 - `mingw32-make run`で実行
+### スクリーンショット
+![Alt text](png/photo.png)
+![Alt text](png/photo2.png)
+![Alt text](png/photo3.png)
