@@ -184,7 +184,7 @@ class FilePicker{
 					if(ImGui::Button("キャンセル")){
 						_is_shown=false;
 					}
-		      ImGui::PopStyleColor(3);
+					ImGui::PopStyleColor(3);
 
 					ImGui::EndPopup();
 				}
@@ -357,10 +357,10 @@ int main(int argc, char *argv[])
 
 	gl3wInit();
 
-  ImGui::CreateContext();
-  ImGui::StyleColorsDark();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init();
+	ImGui_ImplOpenGL3_Init();
 
 	// フォントの追加
 	ImGuiIO &io = ImGui::GetIO();
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
 	builder.BuildRanges(&ranges);
 
 	io.Fonts->AddFontFromFileTTF("font/mplus-2p-regular.ttf", 16.0f, nullptr, ranges.Data);
-  io.Fonts->AddFontDefault();
+	io.Fonts->AddFontDefault();
 	io.Fonts->Build();
 
 
@@ -386,7 +386,7 @@ int main(int argc, char *argv[])
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Imguiの初期化
-    ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::StyleColorsLight();
@@ -440,16 +440,16 @@ int main(int argc, char *argv[])
 
 		// Imguiの画面更新
 		ImGui::Render();
-  	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// ダブルバッファのスワップ
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-  ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
+	ImGui::DestroyContext();
 
 	// GLFWの終了処理
 	glfwTerminate();
