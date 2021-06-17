@@ -14,6 +14,7 @@ INCLUDE_FOLDER:=include
 LIBSRC_FOLDER:=libsrc
 LIBOBJ_FOLDER:=libobj
 LIB_FOLDER:=lib
+OBJ_FOLDER:=obj
 
 LUA_DLL=lua54.dll
 
@@ -44,6 +45,7 @@ clean:
 	rd $(LIBOBJ_FOLDER) /S /Q
 	rd $(LIB_FOLDER) /S /Q
 	del *.dll
+	rd $(OBJ_FOLDER) /S /Q
 	del $(EXE_FILE)
 
 cleanlib:
@@ -101,5 +103,8 @@ $(LUA_DLL):
 	xcopy $(LUA_FOLDER)\$(LUA_DLL) .
 
 
-obj/%.o: src/%.cpp $(INCLUDE_FOLDER)
+$(OBJ_FOLDER):
+	mkdir $(OBJ_FOLDER)
+
+obj/%.o: src/%.cpp $(INCLUDE_FOLDER) $(OBJ_FOLDER)
 	g++ -o $@ -c $< -I$(INCLUDE_FOLDER)
