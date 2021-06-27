@@ -963,12 +963,6 @@ int main(int argc, char *argv[])
 		fp.menuLoop();
 
 		ImGui::BeginMainMenuBar();
-		// if(ImGui::BeginMenu("ファイル")){
-		// 	if(ImGui::MenuItem(" リロード")){
-		// 		lm.loadFile(fp.getPath());
-		// 	}
-		// 	ImGui::EndMenu();
-		// }
 		if(ImGui::BeginMenu("ヘルプ")){
 			if(ImGui::MenuItem(" Show help")){
 
