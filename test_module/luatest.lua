@@ -2,7 +2,7 @@ aa="poo"
 
 function Loop()
   imBegin("hoge")
-  if(imButton("change")==1) then
+  if(imButton("change")) then
     aa="hoo"
   end
   imButton(aa)

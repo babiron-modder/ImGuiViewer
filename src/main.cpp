@@ -202,50 +202,549 @@ class FilePicker{
 };
 
 
-class ImLua{
-	public:
-		static bool showFlag;
-		static bool flag;
+namespace ImLua {
+	namespace {
+		const long long int TEXT_1024_LEN = 1024;
+	}
+	namespace {
+		bool bool1;
+		int int1;
+		int int_array[4];
+		float float1;
+		// float float1024[1024];
+		char text1024[1024];
+		const char **const_char_array = new const char*[1];
+		int CURRENT_CONST_CHAR_ARRAY_SIZE = 0;
+	}
+	namespace {
+		bool showFlag = false;
+		bool flag = false;
+		int tree_node_counter = 0;
+		int stack_top;
+	}
+	int imBegin(lua_State *L){
+		// ImGui::SetNextWindowSizeConstraints(ImVec2(200,200),ImVec2(400,400));
+		// ImGui::SetNextWindowContentSize(ImVec2(200,0));
+		// ImGui::SetNextWindowSize(ImVec2(200,0));
+		// ImGui::Begin(luaL_checkstring(L,1), NULL);
 
-		static int imBegin(lua_State *L){
-			// ImGui::SetNextWindowSizeConstraints(ImVec2(200,200),ImVec2(400,400));
-			// ImGui::SetNextWindowContentSize(ImVec2(200,0));
-			// ImGui::SetNextWindowSize(ImVec2(200,0));
-			// ImGui::Begin(luaL_checkstring(L,1), NULL);
-			if(showFlag){
-				ImGui::Begin(luaL_checkstring(L,1), &showFlag);
-				flag=true;
-			}
-			return 1;
+		if(showFlag){
+			ImGui::Begin(luaL_checkstring(L,1), &showFlag);
+			flag=true;
 		}
-		static int imEnd(lua_State *L){
-			if(showFlag || flag){
-				ImGui::End();
-				flag=false;
-			}
-			return 1;
+		return 1;
+	}
+	int imEnd(lua_State *L){
+		if(showFlag || flag){
+			ImGui::End();
+			flag=false;
 		}
-		static int imButton(lua_State *L){
-			if(showFlag){
-				lua_pushnumber(L, ImGui::Button(luaL_checkstring(L,1)));
-			}
-			return 1;
+		return 1;
+	}
+
+	int imCollapsingHeader(lua_State *L){
+		if(showFlag){
+			lua_pushboolean(L, ImGui::CollapsingHeader(luaL_checkstring(L,1), luaL_optinteger(L, 2, 0)));
 		}
-		static int imText(lua_State *L){
-			if(showFlag){
-				ImGui::Text(luaL_checkstring(L,1));
-			}
-			return 1;
+		return 1;
+	}
+
+	int imTreeNode(lua_State *L){
+		if(showFlag){
+			lua_pushboolean(L, ImGui::TreeNodeEx(luaL_checkstring(L,1), luaL_optinteger(L,2,0)));
 		}
-		static int imTextWrapped(lua_State *L){
-			if(showFlag){
-				ImGui::TextWrapped(luaL_checkstring(L,1));
-			}
-			return 1;
+		return 1;
+	}
+
+	int imTreePush(lua_State *L){
+		if(showFlag){
+			ImGui::TreePush(luaL_checkstring(L,1));
 		}
-};
-bool ImLua::showFlag = true;
-bool ImLua::flag = false;
+		return 1;
+	}
+
+	int imTreePop(lua_State *L){
+		if(showFlag){
+			ImGui::TreePop();
+		}
+		return 1;
+	}
+
+	int imCombo(lua_State *L){
+		if(showFlag){
+			if(CURRENT_CONST_CHAR_ARRAY_SIZE < luaL_checkinteger(L, 4)){
+				delete[] const_char_array;
+				const_char_array = new const char*[luaL_checkinteger(L, 4)];
+				CURRENT_CONST_CHAR_ARRAY_SIZE = luaL_checkinteger(L, 4);
+			}
+			for(int1=0; int1<luaL_checkinteger(L, 4); ++int1){
+				lua_rawgeti(L, 3, int1+1); // 引数2 の値の [1] を取得する
+				const_char_array[int1] = lua_tostring(L, -1);
+			}
+			int1 = luaL_checkinteger(L, 2) - 1; //lua:1 -> c++:0
+			ImGui::Combo(luaL_checkstring(L, 1), &int1, const_char_array, luaL_checkinteger(L, 4));
+			lua_pushinteger(L, int1+1);
+		}
+		return 1;
+	}
+
+	int imListBox(lua_State *L){
+		if(showFlag){
+			if(CURRENT_CONST_CHAR_ARRAY_SIZE < luaL_checkinteger(L, 4)){
+				delete[] const_char_array;
+				const_char_array = new const char*[luaL_checkinteger(L, 4)];
+				CURRENT_CONST_CHAR_ARRAY_SIZE = luaL_checkinteger(L, 4);
+			}
+
+			for(int1=0; int1<luaL_checkinteger(L, 4); ++int1){
+				lua_rawgeti(L, 3, int1+1); // 引数2 の値の [1] を取得する
+				const_char_array[int1] = lua_tostring(L, -1);
+			}
+			int1 = luaL_checkinteger(L, 2) - 1; //lua:1 -> c++:0
+			ImGui::ListBox(luaL_checkstring(L, 1), &int1, const_char_array, luaL_checkinteger(L, 4), luaL_optinteger(L, 5, -1));
+			lua_pushinteger(L, int1+1);
+		}
+		return 1;
+	}
+
+	int imCheckBox(lua_State *L){
+		if(showFlag){
+			bool1 = lua_toboolean(L,2);
+			ImGui::Checkbox(luaL_checkstring(L,1), &bool1);
+			lua_pushboolean(L, bool1);
+		}
+		return 1;
+	}
+
+	int imRadioButton(lua_State *L){
+		if(showFlag){
+			int1 = luaL_checknumber(L,2);
+			ImGui::RadioButton(luaL_checkstring(L,1), &int1, luaL_checknumber(L,3));
+			lua_pushinteger(L, int1);
+		}
+		return 1;
+	}
+
+	int imButton(lua_State *L){
+		if(showFlag){
+			lua_pushboolean(L, ImGui::Button(luaL_checkstring(L,1), ImVec2(luaL_optinteger(L, 2, 0), luaL_optinteger(L, 3, 0))));
+		}
+		return 1;
+	}
+	int imSmallButton(lua_State *L){
+		if(showFlag){
+			lua_pushboolean(L, ImGui::SmallButton(luaL_checkstring(L,1)));
+		}
+		return 1;
+	}
+	int imInputInt(lua_State *L){
+		if(showFlag){
+			int1 = luaL_checkinteger(L, 2);
+			ImGui::InputInt(luaL_checkstring(L, 1), &int1);
+			lua_pushinteger(L, int1);
+		}
+		return 1;
+	}
+	int imInputInt2(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+
+			ImGui::InputInt2(luaL_checkstring(L,1), int_array);
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+		}
+		return 1;
+	}
+	int imInputInt3(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 3); // 引数2 の値の [3] を取得する
+			int_array[2] = lua_tointeger(L, -1);
+
+			ImGui::InputInt3(luaL_checkstring(L,1), int_array);
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+			lua_pushinteger(L, int_array[2]);
+			lua_rawseti(L, stack_top, 3);
+		}
+		return 1;
+	}
+	int imInputInt4(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 3); // 引数2 の値の [3] を取得する
+			int_array[2] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 4); // 引数2 の値の [4] を取得する
+			int_array[3] = lua_tointeger(L, -1);
+
+			ImGui::InputInt4(luaL_checkstring(L,1), int_array);
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+			lua_pushinteger(L, int_array[2]);
+			lua_rawseti(L, stack_top, 3);
+			lua_pushinteger(L, int_array[3]);
+			lua_rawseti(L, stack_top, 4);
+		}
+		return 1;
+	}
+
+	int imInputFloat(lua_State *L){
+		if(showFlag){
+			float1 = luaL_checknumber(L, 2);
+			ImGui::InputFloat(luaL_checkstring(L, 1), &float1);
+			lua_pushnumber(L, float1);
+		}
+		return 1;
+	}
+
+	int imSliderInt(lua_State *L){
+		if(showFlag){
+			int1 = luaL_checkinteger(L, 2);
+			ImGui::SliderInt(luaL_checkstring(L,1), &int1, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+			lua_pushinteger(L, int1);
+		}
+		return 1;
+	}
+	int imSliderInt2(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+
+			ImGui::SliderInt2(luaL_checkstring(L,1), int_array, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+		}
+		return 1;
+	}
+	int imSliderInt3(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 3); // 引数2 の値の [3] を取得する
+			int_array[2] = lua_tointeger(L, -1);
+
+			ImGui::SliderInt3(luaL_checkstring(L,1), int_array, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+			lua_pushinteger(L, int_array[2]);
+			lua_rawseti(L, stack_top, 3);
+		}
+		return 1;
+	}
+	int imSliderInt4(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 3); // 引数2 の値の [3] を取得する
+			int_array[2] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 4); // 引数2 の値の [4] を取得する
+			int_array[3] = lua_tointeger(L, -1);
+
+			ImGui::SliderInt4(luaL_checkstring(L,1), int_array, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+			lua_pushinteger(L, int_array[2]);
+			lua_rawseti(L, stack_top, 3);
+			lua_pushinteger(L, int_array[3]);
+			lua_rawseti(L, stack_top, 4);
+		}
+		return 1;
+	}
+
+	int imSliderFloat(lua_State *L){
+		if(showFlag){
+			float1 = luaL_checknumber(L, 2);
+			ImGui::SliderFloat(luaL_checkstring(L,1), &float1, luaL_checknumber(L, 3), luaL_checknumber(L, 4), luaL_optstring(L, 5, "%.3f"));
+			lua_pushnumber(L, float1);
+		}
+		return 1;
+	}
+
+	int imDragInt(lua_State *L){
+		if(showFlag){
+			int1 = luaL_checkinteger(L, 2);
+			ImGui::DragInt(luaL_checkstring(L,1), &int1, luaL_checknumber(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5));
+			lua_pushinteger(L, int1);
+		}
+		return 1;
+	}
+	int imDragInt2(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+
+			ImGui::DragInt2(luaL_checkstring(L,1), int_array, luaL_checknumber(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5));
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+		}
+		return 1;
+	}
+	int imDragInt3(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 3); // 引数2 の値の [3] を取得する
+			int_array[2] = lua_tointeger(L, -1);
+
+			ImGui::DragInt3(luaL_checkstring(L,1), int_array, luaL_checknumber(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5));
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+			lua_pushinteger(L, int_array[2]);
+			lua_rawseti(L, stack_top, 3);
+		}
+		return 1;
+	}
+	int imDragInt4(lua_State *L){
+		if(showFlag){
+			lua_rawgeti(L, 2, 1); // 引数2 の値の [1] を取得する
+			int_array[0] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 2); // 引数2 の値の [2] を取得する
+			int_array[1] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 3); // 引数2 の値の [3] を取得する
+			int_array[2] = lua_tointeger(L, -1);
+			lua_rawgeti(L, 2, 4); // 引数2 の値の [4] を取得する
+			int_array[3] = lua_tointeger(L, -1);
+
+			ImGui::DragInt4(luaL_checkstring(L,1), int_array, luaL_checknumber(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5));
+
+			lua_newtable(L);
+			stack_top = lua_gettop(L);
+
+			lua_pushinteger(L, int_array[0]);
+			lua_rawseti(L, stack_top, 1);
+			lua_pushinteger(L, int_array[1]);
+			lua_rawseti(L, stack_top, 2);
+			lua_pushinteger(L, int_array[2]);
+			lua_rawseti(L, stack_top, 3);
+			lua_pushinteger(L, int_array[3]);
+			lua_rawseti(L, stack_top, 4);
+		}
+		return 1;
+	}
+	int imText(lua_State *L){
+		if(showFlag){
+			ImGui::Text(luaL_checkstring(L,1));
+		}
+		return 1;
+	}
+	int imBulletText(lua_State *L){
+		if(showFlag){
+			ImGui::BulletText(luaL_checkstring(L,1));
+		}
+		return 1;
+	}
+	int imTextWrapped(lua_State *L){
+		if(showFlag){
+			ImGui::TextWrapped(luaL_checkstring(L,1));
+		}
+		return 1;
+	}
+	int imInputText(lua_State *L){
+		if(showFlag){
+			text1024[0] = '\0';
+			strcat(text1024, luaL_checkstring(L,2));
+			ImGui::InputText(luaL_checkstring(L,1), text1024, min(luaL_checkinteger(L,3), TEXT_1024_LEN));
+		}
+		lua_pushstring(L , text1024);
+		return 1;
+	}
+	int imProgressBar(lua_State *L){
+		if(showFlag){
+			ImGui::ProgressBar(luaL_checknumber(L, 1), ImVec2(0.0f, 0.0f), luaL_optstring(L, 2, NULL));
+		}
+		return 1;
+	}
+	// int imPlotLines(lua_State *L){
+	// 	if(showFlag){
+	// 		// new_float_array = new float[luaL_checkinteger(L, 3)];
+	// 		for(int1=0; int1<luaL_checkinteger(L, 3); ++int1){
+	// 			lua_rawgeti(L, 2, int1+1);
+	// 			float1024[int1] = lua_tonumber(L, -1);
+	// 		}
+	//
+	// 		ImGui::PlotLines(luaL_checkstring(L, 1), float1024, luaL_checkinteger(L, 3));
+	// 		// delete new_float_array;
+	// 	}
+	// 	return 1;
+	// }
+	int imBeginTable(lua_State *L){
+		if(showFlag){
+			lua_pushboolean(L, ImGui::BeginTable(luaL_checkstring(L,1), luaL_checkinteger(L,2), luaL_optinteger(L, 3, 0)));
+		}
+		return 1;
+	}
+	int imTableNextRow(lua_State *L){
+		if(showFlag){
+			ImGui::TableNextRow();
+		}
+		return 1;
+	}
+	int imTableNextColumn(lua_State *L){
+		if(showFlag){
+			ImGui::TableNextColumn();
+		}
+		return 1;
+	}
+	int imEndTable(lua_State *L){
+		if(showFlag){
+			ImGui::EndTable();
+		}
+		return 1;
+	}
+	int imSameLine(lua_State *L){
+		if(showFlag){
+			ImGui::SameLine();
+		}
+		return 1;
+	}
+	int imSpacing(lua_State *L){
+		if(showFlag){
+			ImGui::Spacing();
+		}
+		return 1;
+	}
+	int imSeparator(lua_State *L){
+		if(showFlag){
+			ImGui::Separator();
+		}
+		return 1;
+	}
+	int imIndent(lua_State *L){
+		if(showFlag){
+			ImGui::Indent(luaL_optnumber(L, 1, 0.0));
+		}
+		return 1;
+	}
+	int imUnindent(lua_State *L){
+		if(showFlag){
+			ImGui::Unindent(luaL_optnumber(L, 1, 0.0));
+		}
+		return 1;
+	}
+	int imPushItemWidth(lua_State *L){
+		if(showFlag){
+			ImGui::PushItemWidth(luaL_checkinteger(L,1));
+		}
+		return 1;
+	}
+	int imPopItemWidth(lua_State *L){
+		if(showFlag){
+			ImGui::PopItemWidth();
+		}
+		return 1;
+	}
+	int imPushID(lua_State *L){
+		if(showFlag){
+			ImGui::PushID(luaL_checkstring(L,1));
+		}
+		return 1;
+	}
+	int imPopID(lua_State *L){
+		if(showFlag){
+			ImGui::PopID();
+		}
+		return 1;
+	}
+	int imIsItemHovered(lua_State *L){
+		if(showFlag){
+			lua_pushboolean(L, ImGui::IsItemHovered());
+		}
+		return 1;
+	}
+	int imSetTooltip(lua_State *L){
+		if(showFlag){
+			ImGui::SetTooltip(luaL_checkstring(L,1));
+		}
+		return 1;
+	}
+	int imBeginTooltip(lua_State *L){
+		if(showFlag){
+			ImGui::BeginTooltip();
+		}
+		return 1;
+	}
+	int imEndTooltip(lua_State *L){
+		if(showFlag){
+			ImGui::EndTooltip();
+		}
+		return 1;
+	}
+	int imDummy(lua_State *L){
+		if(showFlag){
+			ImGui::Dummy(ImVec2(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2)));
+		}
+		return 1;
+	}
+
+}
+
 
 
 class LuaModule{
@@ -253,17 +752,65 @@ class LuaModule{
 		lua_State *_L;
 		string _file_path="";
 
+		void pushLuaFunction(lua_CFunction f, const char *name){
+			lua_pushcfunction(_L, f);
+			lua_setglobal(_L, name);
+		}
+
 		void loadFunction(){
-			lua_pushcfunction(_L, ImLua::imBegin);
-			lua_setglobal(_L, "imBegin");
-			lua_pushcfunction(_L, ImLua::imEnd);
-			lua_setglobal(_L, "imEnd");
-			lua_pushcfunction(_L, ImLua::imButton);
-			lua_setglobal(_L, "imButton");
-			lua_pushcfunction(_L, ImLua::imText);
-			lua_setglobal(_L, "imText");
-			lua_pushcfunction(_L, ImLua::imTextWrapped);
-			lua_setglobal(_L, "imTextWrapped");
+			pushLuaFunction(ImLua::imBegin, "imBegin");
+			pushLuaFunction(ImLua::imEnd, "imEnd");
+			pushLuaFunction(ImLua::imCollapsingHeader, "imCollapsingHeader");
+			pushLuaFunction(ImLua::imTreeNode, "imTreeNode");
+			pushLuaFunction(ImLua::imTreePush, "imTreePush");
+			pushLuaFunction(ImLua::imTreePop, "imTreePop");
+			pushLuaFunction(ImLua::imCombo, "imCombo");
+			pushLuaFunction(ImLua::imListBox, "imListBox");
+			pushLuaFunction(ImLua::imCheckBox, "imCheckBox");
+			pushLuaFunction(ImLua::imRadioButton, "imRadioButton");
+			pushLuaFunction(ImLua::imButton, "imButton");
+			pushLuaFunction(ImLua::imSmallButton, "imSmallButton");
+			pushLuaFunction(ImLua::imInputInt, "imInputInt");
+			pushLuaFunction(ImLua::imInputInt2, "imInputInt2");
+			pushLuaFunction(ImLua::imInputInt3, "imInputInt3");
+			pushLuaFunction(ImLua::imInputInt4, "imInputInt4");
+			pushLuaFunction(ImLua::imInputFloat, "imInputFloat");
+			pushLuaFunction(ImLua::imSliderInt, "imSliderInt");
+			pushLuaFunction(ImLua::imSliderInt2, "imSliderInt2");
+			pushLuaFunction(ImLua::imSliderInt3, "imSliderInt3");
+			pushLuaFunction(ImLua::imSliderInt4, "imSliderInt4");
+			pushLuaFunction(ImLua::imSliderFloat, "imSliderFloat");
+			pushLuaFunction(ImLua::imDragInt, "imDragInt");
+			pushLuaFunction(ImLua::imDragInt2, "imDragInt2");
+			pushLuaFunction(ImLua::imDragInt3, "imDragInt3");
+			pushLuaFunction(ImLua::imDragInt4, "imDragInt4");
+			pushLuaFunction(ImLua::imText, "imText");
+			pushLuaFunction(ImLua::imBulletText, "imBulletText");
+			pushLuaFunction(ImLua::imTextWrapped, "imTextWrapped");
+			pushLuaFunction(ImLua::imInputText, "imInputText");
+			pushLuaFunction(ImLua::imProgressBar, "imProgressBar");
+			// pushLuaFunction(ImLua::imPlotLines, "imPlotLines");
+			pushLuaFunction(ImLua::imBeginTable, "imBeginTable");
+			pushLuaFunction(ImLua::imTableNextRow, "imTableNextRow");
+			pushLuaFunction(ImLua::imTableNextColumn, "imTableNextColumn");
+			pushLuaFunction(ImLua::imEndTable, "imEndTable");
+			pushLuaFunction(ImLua::imSameLine, "imSameLine");
+			pushLuaFunction(ImLua::imSpacing, "imSpacing");
+			pushLuaFunction(ImLua::imSeparator, "imSeparator");
+			pushLuaFunction(ImLua::imIndent, "imIndent");
+			pushLuaFunction(ImLua::imUnindent, "imUnindent");
+			pushLuaFunction(ImLua::imPushItemWidth, "imPushItemWidth");
+			pushLuaFunction(ImLua::imPopItemWidth, "imPopItemWidth");
+			pushLuaFunction(ImLua::imPushID, "imPushID");
+			pushLuaFunction(ImLua::imPopID, "imPopID");
+			pushLuaFunction(ImLua::imIsItemHovered, "imIsItemHovered");
+			pushLuaFunction(ImLua::imSetTooltip, "imSetTooltip");
+			pushLuaFunction(ImLua::imBeginTooltip, "imBeginTooltip");
+			pushLuaFunction(ImLua::imEndTooltip, "imEndTooltip");
+			pushLuaFunction(ImLua::imDummy, "imDummy");
+
+			lua_pushnumber(_L, ImGuiTableFlags_Borders);
+			lua_setglobal(_L, "IMLUA_TABLE_BORDERS");
 		}
 
 	public:
@@ -286,7 +833,7 @@ class LuaModule{
 			if(lua_pcall(_L,0,0,0) != 0) {
 				// cout << lua_tostring(_L, -1) << endl;
 				_file_path="";
-				lua_close(_L);
+				closeLua();
 				_L = luaL_newstate();
 				luaL_openlibs(_L);
 				// exit(EXIT_FAILURE);
@@ -300,7 +847,7 @@ class LuaModule{
 		}
 
 		void resetLua(){
-			lua_close(_L);
+			closeLua();
 			_L = luaL_newstate();
 			luaL_openlibs(_L);
 			_file_path="";
@@ -335,9 +882,9 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
-	// if(argc==2){
-	// 	lm.loadFile(argv[1]);
-	// }
+	if(argc==2){
+		lm.loadFile(argv[1]);
+	}
 
 	// GLFWの初期化
 	if (!glfwInit()) {
@@ -406,11 +953,22 @@ int main(int argc, char *argv[])
 
 
 		// メニューバー
+		ImGui::BeginMainMenuBar();
+		if(ImGui::MenuItem("リロード")){
+			lm.loadFile(fp.getPath());
+		}
+		ImGui::EndMainMenuBar();
 
 		// ファイル・開くを追加
 		fp.menuLoop();
 
 		ImGui::BeginMainMenuBar();
+		// if(ImGui::BeginMenu("ファイル")){
+		// 	if(ImGui::MenuItem(" リロード")){
+		// 		lm.loadFile(fp.getPath());
+		// 	}
+		// 	ImGui::EndMenu();
+		// }
 		if(ImGui::BeginMenu("ヘルプ")){
 			if(ImGui::MenuItem(" Show help")){
 
@@ -447,6 +1005,7 @@ int main(int argc, char *argv[])
 		glfwPollEvents();
 	}
 
+	delete[] ImLua::const_char_array;
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
